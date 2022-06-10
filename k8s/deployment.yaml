@@ -1,0 +1,77 @@
+# Deployment Postgree
+apiVersion: apps/v1 
+kind: Deployment 
+metadata:
+  name: postgre 
+spec:
+  selector:
+    matchLabels:
+      app: postgre 
+  template:
+    metadata:
+      labels: 
+        app: postgre 
+    spec:
+      containers:
+        - name: postgre 
+          image: postgres:14.3
+          ports:
+            - containerPort: 5432
+          env:
+          - name: POSTGRES_PASSWORD
+            value: "123@321"
+          - name: POSTGRES_USER
+            value: "wilbur"
+          - name: POSTGRES_DB
+            value: "conversor"
+---
+apiVersion: v1 
+kind: Service 
+metadata:
+  name: postgre
+spec: 
+  selector:
+    app: postgre 
+  ports: 
+  - port: 5432
+    targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment 
+metadata: 
+  name: conversor 
+spec:
+  replicas: 10
+  selector:
+    matchLabels: 
+      app: conversor 
+  template: 
+    metadata: 
+      labels: 
+        app: conversor 
+    spec: 
+      containers: 
+      - name: conversor 
+        image: kalamaz00/temperatura-conversao:v1 
+        env: 
+        - name: DB_DATABASE
+          value: "conversor"
+        - name: DB_USERNAME
+          value: "wilbur"
+        - name: DB_PASSWORD
+          value: "123@321"
+        - name: DM_HOST
+          value: "postgre" 
+---
+apiVersion: v1 
+kind: Service 
+metadata:
+  name: conversor-temperatura
+spec:
+  selector: 
+    app: conversor 
+  ports: 
+  - port: 80
+    targetPort: 8080
+    nodePort: 30000
+  type: NodePort 
